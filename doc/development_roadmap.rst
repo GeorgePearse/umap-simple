@@ -104,9 +104,18 @@ Major Initiatives
 - pynndescent can remain optional for users who want advanced features, but core UMAP should work with standard libraries
 - Industry-standard vector databases like Qdrant use alternative approaches (HNSW, etc.)
 
-**Reference Implementation**:
-- See Qdrant's vector search architecture: https://github.com/qdrant/qdrant/tree/master/src
-- Qdrant uses HNSW (Hierarchical Navigable Small World) algorithm for production-grade nearest neighbor search
+**Reference Implementations**:
+- **Qdrant**: Production vector database using HNSW
+  - See architecture: https://github.com/qdrant/qdrant/tree/master/src
+  - Uses HNSW (Hierarchical Navigable Small World) for production-grade nearest neighbor search
+  - 10x+ faster than alternatives on large datasets
+
+- **HGG (Hierarchical Greedy Graph)**: Alternative to HNSW from rust-cv
+  - See implementation: https://github.com/rust-cv/hgg
+  - Data-dependent hierarchy (adapts to local dimensionality)
+  - Fully deterministic (unlike HNSW which uses randomness)
+  - More efficient edge management and freshening process
+  - Written in Rust, but algorithm principles apply to Python implementation
 
 **Scope**:
 - Replace pynndescent's NNDescent with alternatives (see comparison below)
@@ -117,18 +126,19 @@ Major Initiatives
 
 **Alternative Implementations Comparison**:
 
-================ ==================== ==================== ==================== ====================
-Criteria         scikit-learn         HNSWlib              FAISS                Annoy
-================ ==================== ==================== ==================== ====================
-Type             KDTree/BallTree      Graph-based (HNSW)   Clustering/HNSW      Random projections
-Speed            Good (small data)    Excellent            Excellent            Good
-GPU Support      No                   No                   Yes (major feature)  No
-Dynamic Updates  Yes                  Yes                  Limited              No (rebuild)
-Distance Metrics Many                 Common               Many                 Limited
-Memory Efficient Yes                  Moderate             Yes                  Yes
-Maintenance      Well-maintained      Active               Well-maintained      Active
-Dependencies     NumPy only           Minimal              Minimal              Minimal
-================ ==================== ==================== ==================== ====================
+================ ==================== ==================== ==================== ==================== ====================
+Criteria         scikit-learn         HNSWlib              FAISS                Annoy                HGG
+================ ==================== ==================== ==================== ==================== ====================
+Type             KDTree/BallTree      Graph (HNSW)         Clustering/HNSW      Random projections    Graph (Greedy)
+Speed            Good (small data)    Excellent            Excellent            Good                  Excellent
+GPU Support      No                   No                   Yes (major feature)  No                    No
+Dynamic Updates  Yes                  Yes                  Limited              No (rebuild)          Yes
+Distance Metrics Many                 Common               Many                 Limited               Common
+Memory Efficient Yes                  Moderate             Yes                  Yes                   Moderate
+Deterministic    Yes                  No (randomized)      Yes                  Yes                   Yes (fully)
+Maintenance      Well-maintained      Active               Well-maintained      Active                Active
+Dependencies     NumPy only           Minimal              Minimal              Minimal               Rust (native)
+================ ==================== ==================== ==================== ==================== ====================
 
 **Recommended Approach**:
 1. **Default (no new deps)**: Use scikit-learn's KDTree/BallTree for standard cases
@@ -136,15 +146,17 @@ Dependencies     NumPy only           Minimal              Minimal              
    - No additional dependencies
    - Good for most use cases
 
-2. **Optional (with deps)**: Allow users to opt-in to HNSWlib or FAISS for large-scale deployments
-   - HNSWlib: Best for production use (Qdrant uses this approach)
+2. **Optional (with deps)**: Allow users to opt-in to HNSWlib, FAISS, or HGG for large-scale deployments
+   - HNSWlib: Best for production use (Qdrant uses this, industry-standard)
    - FAISS: Best for GPU-accelerated workloads
-   - Both have minimal Python dependencies
+   - HGG: Best for reproducibility and data-dependent optimization (fully deterministic)
+   - All have minimal Python dependencies
 
 3. **Fallback Strategy**: Graceful degradation
    - Use sklearn by default
    - Warn if user tries to use pynndescent features
    - Auto-upgrade to HNSWlib if available and beneficial for large datasets
+   - Consider HGG for users requiring deterministic behavior
 
 **Implementation Plan**:
 1. Audit all pynndescent usage in the codebase
@@ -174,11 +186,14 @@ Dependencies     NumPy only           Minimal              Minimal              
 **Priority**: High (reduces coupling and external dependencies)
 
 **Key Considerations**:
-- Performance implications: HNSWlib is 10x+ faster than sklearn for large datasets
-- Sparse matrix handling: scipy.sparse has limited distance metric support (critical for sparse UMAP)
-- Distance metrics: Not all custom metrics may be supported by all backends
-- API compatibility: Ensure the abstraction layer provides a clean interface
-- Benchmarking: Use ann-benchmarks.com for comprehensive performance testing
+- **Performance**: HNSWlib is 10x+ faster than sklearn for large datasets, HGG offers comparable performance
+- **Determinism**: HGG is fully deterministic (unlike HNSW which uses randomization), important for reproducible research
+- **Sparse matrices**: scipy.sparse has limited distance metric support (critical for sparse UMAP)
+- **Distance metrics**: Not all custom metrics may be supported by all backends
+- **API compatibility**: Ensure the abstraction layer provides a clean interface
+- **Native implementation option**: HGG is Rust-based; could be wrapped via PyO3 for Python bindings if performance is critical
+- **Benchmarking**: Use ann-benchmarks.com for comprehensive performance testing
+- **Research reproducibility**: HGG's deterministic behavior may be valuable for scientific use cases
 
 ---
 
