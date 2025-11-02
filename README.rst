@@ -7,8 +7,6 @@
 
 |pypi_version|_ |pypi_downloads|_
 
-|conda_version|_ |conda_downloads|_
-
 |License|_ |build_status|_ |Coverage|_
 
 |Docs|_ |joss_paper|_
@@ -18,12 +16,6 @@
 
 .. |pypi_downloads| image:: https://pepy.tech/badge/umap-learn/month
 .. _pypi_downloads: https://pepy.tech/project/umap-learn
-
-.. |conda_version| image:: https://anaconda.org/conda-forge/umap-learn/badges/version.svg
-.. _conda_version: https://anaconda.org/conda-forge/umap-learn
-
-.. |conda_downloads| image:: https://anaconda.org/conda-forge/umap-learn/badges/downloads.svg
-.. _conda_downloads: https://anaconda.org/conda-forge/umap-learn
 
 .. |License| image:: https://img.shields.io/pypi/l/umap-learn.svg
 .. _License: https://github.com/lmcinnes/umap/blob/master/LICENSE.txt
@@ -120,20 +112,13 @@ Recommended packages:
 
 **Install Options**
 
-Conda install, via the excellent work of the conda-forge team:
-
-.. code:: bash
-
-    conda install -c conda-forge umap-learn
-
-The conda-forge packages are available for Linux, OS X, and Windows 64 bit.
-
-PyPI install, presuming you have numba and sklearn and all its requirements
-(numpy and scipy) installed:
+The recommended way to install UMAP is via PyPI using pip:
 
 .. code:: bash
 
     pip install umap-learn
+
+This will install UMAP and all required dependencies.
 
 If you wish to use the plotting functionality you can use
 
@@ -160,36 +145,20 @@ provide additional CPU optimizations:
 
     pip install umap-learn[tbb]
 
-If pip is having difficulties pulling the dependencies then we'd suggest installing
-the dependencies manually using anaconda followed by pulling umap from pip:
+For a manual development install, clone the repository and install in editable mode:
 
 .. code:: bash
 
-    conda install numpy scipy
-    conda install scikit-learn
-    conda install numba
-    pip install umap-learn
+    git clone https://github.com/lmcinnes/umap.git
+    cd umap
 
-For a manual install get this package:
+Then create a virtual environment (recommended) and install the package:
 
 .. code:: bash
 
-    wget https://github.com/lmcinnes/umap/archive/master.zip
-    unzip master.zip
-    rm master.zip
-    cd umap-master
-
-Optionally, install the requirements through Conda:
-
-.. code:: bash
-
-    conda install scikit-learn numba
-
-Then install the package
-
-.. code:: bash
-
-    python -m pip install -e .
+    python -m venv venv
+    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    pip install -e .
 
 ---------------
 How to use UMAP

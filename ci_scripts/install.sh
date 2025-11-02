@@ -1,86 +1,50 @@
-if [[ "$DISTRIB" == "conda" ]]; then
+#!/bin/bash
+# Installation script for UMAP development environment
+# Uses pip for dependency installation (conda no longer supported)
 
-  # Deactivate the travis-provided virtual environment and setup a
-    # conda-based environment instead
-  if [ $TRAVIS_OS_NAME = 'linux' ]; then
-    # Only Linux has a virtual environment activated; Mac does not.
-    deactivate
-  fi
+set -e
 
-  # Use the miniconda installer for faster download / install of conda
-  # itself
-  pushd .
-  cd
-  mkdir -p download
-  cd download
-  echo "Cached in $HOME/download :"
-  ls -l
-  echo
-# For now, ignoring the cached file.
-#  if [[ ! -f miniconda.sh ]]
-#     then
-     if [ $TRAVIS_OS_NAME = 'osx' ]; then
-       # MacOS URL found here: https://docs.conda.io/en/latest/miniconda.html
-       wget \
-       https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh \
-         -O miniconda.sh
-     else
-       wget \
-       http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-         -O miniconda.sh
-     fi
-#  fi
-  chmod +x miniconda.sh && ./miniconda.sh -b -p $HOME/miniconda
-  cd ..
-  export PATH=$HOME/miniconda/bin:$HOME/miniconda3/bin:$PATH
-  conda update --yes conda
-  popd
+echo "Setting up UMAP development environment with pip..."
 
-  # Configure the conda environment and put it in the path using the
-  # provided versions
-#  conda create -n testenv --yes python=$PYTHON_VERSION pip \
-#        numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION numba=$NUMBA_VERSION scikit-learn \
-#        pytest "tensorflow-mkl>=2.2.0"
-  if [ $TRAVIS_OS_NAME = 'osx' ]; then
-    conda create -q -n testenv --yes python=$PYTHON_VERSION numpy scipy scikit-learn \
-          numba pytest pandas
-#    pip install bokeh
-#    pip install datashader
-#    pip install holoviews
-    conda install --yes "tensorflow>=2.0.0"
-  else
-    conda create -q -n testenv --yes python=$PYTHON_VERSION numpy scipy scikit-learn \
-          numba pandas bokeh holoviews datashader scikit-image pytest pytest-benchmark \
-          "tensorflow-mkl>=2.2.0"
-  fi
+# Check Python version
+python --version
 
-  source activate testenv
-
-  # black requires Python 3.x; don't try to install for Python 2.7 test
-  if [[ "$PYTHON_VERSION" != "2.7" ]]; then
-    pip install black
-    pip install pynndescent
-  fi
-
-  if [[ "$COVERAGE" == "true" ]]; then
-      pip install coverage coveralls
-      pip install pytest-cov pytest-benchmark # pytest coverage plugin
-  fi
-
-  python --version
-  python -c "import numpy; print('numpy %s' % numpy.__version__)"
-  python -c "import scipy; print('scipy %s' % scipy.__version__)"
-  python -c "import numba; print('numba %s' % numba.__version__)"
-  python -c "import sklearn; print('scikit-learn %s' % sklearn.__version__)"
-  python setup.py develop
-else
-  pip install pynndescent # test with optional pynndescent dependency
-  pip install pandas
-  pip install bokeh
-  pip install datashader
-  pip install matplotlib
-  pip install holoviews
-  pip install scikit-image
-  pip install "tensorflow>=2.2.0"
-  pip install -e .
+# Create virtual environment (recommended but not required)
+if [ ! -d "venv" ]; then
+  echo "Creating virtual environment..."
+  python -m venv venv
+  source venv/bin/activate
 fi
+
+# Upgrade pip
+pip install --upgrade pip
+
+# Install dependencies
+echo "Installing core dependencies..."
+pip install numpy scipy scikit-learn numba pynndescent tqdm
+
+# Install optional dependencies for testing and visualization
+echo "Installing optional dependencies..."
+pip install pytest pytest-benchmark pytest-cov
+pip install pandas bokeh holoviews matplotlib datashader scikit-image
+
+# Install parametric UMAP dependencies (TensorFlow - pre-PyTorch migration)
+echo "Installing TensorFlow for Parametric UMAP..."
+pip install "tensorflow>=2.10.0"
+
+# Install the package in development mode
+echo "Installing UMAP in development mode..."
+pip install -e .
+
+# Verify installation
+echo ""
+echo "Installation complete. Verifying versions..."
+python --version
+python -c "import numpy; print('numpy %s' % numpy.__version__)"
+python -c "import scipy; print('scipy %s' % scipy.__version__)"
+python -c "import numba; print('numba %s' % numba.__version__)"
+python -c "import sklearn; print('scikit-learn %s' % sklearn.__version__)"
+python -c "import umap; print('UMAP loaded successfully')"
+
+echo ""
+echo "Setup complete! Run tests with: pytest"
