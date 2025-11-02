@@ -44,6 +44,11 @@
 UMAP
 ====
 
+.. note::
+
+   **This is a fork of the original UMAP repository** (`lmcinnes/umap <https://github.com/lmcinnes/umap>`_).
+   For the official UMAP project, please visit the original repository.
+
 Uniform Manifold Approximation and Projection (UMAP) is a dimension reduction
 technique that can be used for visualisation similarly to t-SNE, but also for
 general non-linear dimension reduction. The algorithm is founded on three
