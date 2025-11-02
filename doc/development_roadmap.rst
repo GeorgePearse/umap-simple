@@ -172,7 +172,13 @@ Dependencies     NumPy only           Minimal              Minimal              
 4. Replace NNDescent with sklearn's KDTree/BallTree for standard metric cases
 5. Add optional HNSWlib support for users who need it
 6. Implement fallback for custom metrics
-7. Add comprehensive benchmarking to ensure performance is acceptable
+7. **Add comprehensive benchmarking with benchmark-on-commit automation**:
+   - Set up script → JSON → graph pipeline (similar to rust-analyzer-metrics)
+   - Run benchmarks on every commit comparing all backends
+   - Track performance metrics: speed, memory, recall accuracy
+   - Validate against ann-benchmarks.com datasets
+   - Generate performance graphs updated with each commit
+   - Ensure no performance regressions in replacements
 8. Update tests to work without pynndescent as required dependency
 9. Make pynndescent optional in pyproject.toml
 10. Update documentation with migration guide and performance notes
@@ -187,8 +193,26 @@ Dependencies     NumPy only           Minimal              Minimal              
 - README.rst (update requirements and performance notes)
 - tests/ (ensure all tests pass without pynndescent)
 - doc/ (add backend selection guide)
+- **benchmarks/** (new: benchmark suite infrastructure)
 
-**Estimated Effort**: Large (2-3 weeks)
+**Benchmark Infrastructure** (Great Opportunity for Benchmark-on-Commit Approach):
+This task is an ideal candidate for implementing automated benchmarking infrastructure similar to rust-analyzer-metrics:
+
+- Create benchmark scripts comparing all NN backends (sklearn, HNSWlib, FAISS, HGG)
+- JSON output format with metrics: speed, memory, recall accuracy
+- Automated graphs generated from benchmark data (updated on every commit)
+- CI/CD integration to run benchmarks on commits to this branch
+- Track performance regression/improvements automatically
+- Store historical data for trend analysis
+- Compare against ann-benchmarks.com reference implementations
+
+This ensures:
+- No silent performance regressions during refactoring
+- Visibility into trade-offs between different backends
+- Data-driven decision making for which backend to default to
+- Historical record of optimization efforts
+
+**Estimated Effort**: Large (2-3 weeks for implementation + 1 week for benchmarking infrastructure)
 
 **Priority**: High (reduces coupling and external dependencies)
 
